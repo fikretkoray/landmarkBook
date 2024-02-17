@@ -23,8 +23,9 @@ class LandmarkAdapter(val landmarkList: ArrayList<Landmark>) : RecyclerView.Adap
     override fun onBindViewHolder(holder: LandmarkHolder, position: Int) {
         holder.binding.recyclerViewTextView.text = landmarkList.get(position).name
         holder.itemView.setOnClickListener{
-            val intent = Intent(holder.itemView.context,DetailsActivity::class.java)
-            intent.putExtra("landmark",landmarkList.get(position))
+            val intent = Intent(holder.itemView.context,LandmarkActivity::class.java)
+            intent.putExtra("info","old")
+            intent.putExtra("id",landmarkList[position].id)
             //MySingleton.selectedLandmark = landmarkList.get(position)
             holder.itemView.context.startActivity(intent)
         }

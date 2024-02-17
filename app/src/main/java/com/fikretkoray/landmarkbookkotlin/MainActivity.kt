@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +15,7 @@ import com.fikretkoray.landmarkbookkotlin.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var landmarkList: ArrayList<Landmark>
+    private lateinit var landmarkAdapter: LandmarkAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,18 +24,32 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         landmarkList = ArrayList<Landmark>()
+        landmarkAdapter = LandmarkAdapter(landmarkList)
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = landmarkAdapter
 
-        //Data
+        try {
+            val database = this.openOrCreateDatabase("LandmarkBook", MODE_PRIVATE,null)
 
-        val pisa = Landmark("Pisa", "Italy", R.drawable.pisa)
-        val colosseum = Landmark("Colosseum", "Italy", R.drawable.colosseum)
-        val eiffel = Landmark("Eiffel", "France", R.drawable.eiffel)
-        val londonBridge = Landmark("London Bridge", "UK", R.drawable.londonbridge)
+            val cursor = database.rawQuery("SELECT * FROM landmarkBook",null)
+            val landmarkNameIx = cursor.getColumnIndex("landmarkname")
+            val idIx = cursor.getColumnIndex("id")
 
-        landmarkList.add(pisa)
-        landmarkList.add(colosseum)
-        landmarkList.add(eiffel)
-        landmarkList.add(londonBridge)
+            while (cursor.moveToNext()){
+                val name = cursor.getString(landmarkNameIx)
+                val id = cursor.getInt(idIx)
+                val landmark = Landmark(name, id)
+                landmarkList.add(landmark)
+            }
+
+            landmarkAdapter.notifyDataSetChanged() //kendini yenile, yeni veri geldi
+
+            cursor.close()
+
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
 
         //RecyclerView
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
@@ -56,6 +73,23 @@ class MainActivity : AppCompatActivity() {
             }
 
          */
-
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val menuInflater = menuInflater
+        menuInflater.inflate(R.menu.landmark_menu,menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        if(item.itemId == R.id.landmark_item){
+            val intent = Intent(this@MainActivity,LandmarkActivity::class.java)
+            intent.putExtra("info","new")
+            startActivity(intent)
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
 }
